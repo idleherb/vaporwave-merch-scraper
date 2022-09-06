@@ -3,9 +3,12 @@ from dataclasses import dataclass
 from dataclasses_json import LetterCase, dataclass_json
 
 
+Url = str
+
+
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
-class MerchDetails:
+class MerchItem:
     artist: str
     currency: str
     edition_of: int
@@ -18,4 +21,4 @@ class MerchDetails:
     remaining: int
     timestamp: str
     title: str
-    url: str
+    url: Url

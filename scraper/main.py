@@ -4,12 +4,11 @@ import logging
 from typing import Iterable
 
 from scraper.filesystem_helper import resources_dir
-from scraper.futures_helper import gather_scraping_results
-from scraper.scraper import scrape
+from scraper.async_helper import gather_scraping_results
+from scraper.model import Url
+from scraper.scraper import scrape_label_merch_url
 
 LABELS_FILE = resources_dir / "labels.txt"
-
-Url = str
 
 
 def configure_logging() -> None:
@@ -22,12 +21,12 @@ def configure_logging() -> None:
 
 async def main() -> None:
     urls = _read_label_urls()
-    future_results = (scrape(url) for url in _read_label_urls())
+    future_results = (scrape_label_merch_url(url) for url in _read_label_urls())
     results = await gather_scraping_results(future_results, urls)
 
     print(json.dumps([json.loads(res.to_json()) for res in results]))  # type: ignore
 
-    logging.debug(f"done, found {len(results)} merch items")
+    logging.debug(f"... finished, found {len(results)} merch items.")
 
 
 def _read_label_urls() -> Iterable[Url]:

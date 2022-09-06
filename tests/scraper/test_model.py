@@ -1,10 +1,10 @@
 import json
 
-from scraper.model import MerchDetails
+from scraper.model import MerchItem
 
 
 def test_should_convert_merch_details_to_json():
-    given_merch_details = MerchDetails(
+    given_merch_item = MerchItem(
         artist="test_artist",
         currency="test_currency",
         edition_of=1,
@@ -35,6 +35,6 @@ def test_should_convert_merch_details_to_json():
         "url": "test_url",
     })
 
-    actual_json = given_merch_details.to_json()
+    actual_json = given_merch_item.to_json()
 
     assert actual_json == expected_json
