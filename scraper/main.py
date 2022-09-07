@@ -20,8 +20,8 @@ def configure_logging() -> None:
 
 
 async def main() -> None:
-    urls = _read_label_urls()
-    future_results = (scrape_label_merch_url(url) for url in _read_label_urls())
+    urls = list(_read_label_urls())
+    future_results = (scrape_label_merch_url(url) for url in urls)
     results = await gather_scraping_results(future_results, urls)
 
     print(json.dumps([json.loads(res.to_json()) for res in results]))  # type: ignore
@@ -32,7 +32,10 @@ async def main() -> None:
 def _read_label_urls() -> Iterable[Url]:
     with open(LABELS_FILE) as f:
         for line in f:
-            yield line.strip()
+            clean_line = line.strip()
+            if not clean_line or line.startswith("#"):
+                continue
+            yield line
 
 
 if __name__ == "__main__":
