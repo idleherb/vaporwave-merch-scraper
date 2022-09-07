@@ -3,7 +3,7 @@ import json
 import logging
 import re
 from datetime import datetime
-from typing import Iterable
+from typing import Iterable, Optional
 
 import aiohttp
 from aiohttp import ClientSession
@@ -124,7 +124,8 @@ def _parse_merch_item_html(html: str, url: Url) -> Iterable[MerchItem]:
         ]/@content''').get()
     results: list[MerchItem] = []
     for release in releases:
-        if (release["quantity_available"] or 0) > 0:
+        maybe_quantity_available: Optional[int] = release["quantity_available"]
+        if maybe_quantity_available is None or maybe_quantity_available > 0:
             results.append(MerchItem(
                 artist=html_lib.unescape(release["album_artist"] or release["download_artist"] or ""),
                 currency=release["currency"],
@@ -135,7 +136,7 @@ def _parse_merch_item_html(html: str, url: Url) -> Iterable[MerchItem]:
                 merch_type=html_lib.unescape(_normalize_merch_type(release["type_name"], release["title"])),
                 price=release["price"],
                 release_date=release["new_date"],
-                remaining=release["quantity_available"],
+                remaining=maybe_quantity_available,
                 timestamp=timestamp,
                 title=html_lib.unescape(release["album_title"] or release["title"] or ""),
                 url=html_lib.unescape(url),
