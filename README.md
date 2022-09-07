@@ -2,6 +2,10 @@
 
 Live app: http://merch.iwanttorelease.com
 
+## Prerequesites
+
+[Python 3.10](https://www.python.org/downloads/) and [Poetry](https://python-poetry.org/docs/#installation) installed.
+
 ## Setup
 
     poetry shell
@@ -15,9 +19,9 @@ Live app: http://merch.iwanttorelease.com
 
 ## Run Scraper
 
-    python -m scraper.main > bandcamp_merch.json
-    cat bandcamp_merch.json
+    python -m scraper.main > merch_items.json
 
 ## Add or Remove a Music Label
 
-Change file `resources/labels.txt` accordingly.
+Change the URLs in `resources/labels.txt` accordingly.
+Use a `#` at the beginning of any line to exclude it from scraping. 
