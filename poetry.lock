@@ -322,6 +322,36 @@ tomli = ">=1.0.0"
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "xmlschema"]
 
 [[package]]
+name = "pytest-aiohttp"
+version = "1.0.4"
+description = "Pytest plugin for aiohttp support"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+aiohttp = ">=3.8.1"
+pytest = ">=6.1.0"
+pytest-asyncio = ">=0.17.2"
+
+[package.extras]
+testing = ["mypy (==0.931)", "coverage (==6.2)"]
+
+[[package]]
+name = "pytest-asyncio"
+version = "0.19.0"
+description = "Pytest support for asyncio"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+pytest = ">=6.1.0"
+
+[package.extras]
+testing = ["coverage (>=6.2)", "hypothesis (>=5.7.1)", "flaky (>=3.5.0)", "mypy (>=0.931)", "pytest-trio (>=0.7.0)"]
+
+[[package]]
 name = "pytest-cov"
 version = "3.0.0"
 description = "Pytest plugin for measuring coverage."
@@ -335,6 +365,17 @@ pytest = ">=4.6"
 
 [package.extras]
 testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtualenv"]
+
+[[package]]
+name = "pytest-unordered"
+version = "0.5.1"
+description = "Test equality of unordered collections in pytest"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+pytest = ">=6.0.0"
 
 [[package]]
 name = "six"
@@ -395,7 +436,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "39bc920cce01fbf28a1f085d8577b05e234e8e481c5208b5b65158f4630721bc"
+content-hash = "7989ff9329b044523ad163dec9f867aa8fa0fbb952b5b2b82af4bcac324e696b"
 
 [metadata.files]
 aiohttp = [
@@ -586,10 +627,13 @@ pyparsing = [
     {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
 ]
 pytest = []
+pytest-aiohttp = []
+pytest-asyncio = []
 pytest-cov = [
     {file = "pytest-cov-3.0.0.tar.gz", hash = "sha256:e7f0f5b1617d2210a2cabc266dfe2f4c75a8d32fb89eafb7ad9d06f6d076d470"},
     {file = "pytest_cov-3.0.0-py3-none-any.whl", hash = "sha256:578d5d15ac4a25e5f961c938b85a05b09fdaae9deef3bb6de9a6e766622ca7a6"},
 ]
+pytest-unordered = []
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},

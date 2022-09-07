@@ -14,7 +14,7 @@ from scraper.model import MerchItem, Url
 
 MERCH_TYPE_CASSETTE = "Cassette"
 MERCH_TYPE_VINYL = "Record/Vinyl"
-RE_DATA_TRALBUM = re.compile(r'data-tralbum="(?P<DATA>.+?)"', re.MULTILINE)
+RE_DATA_TRALBUM = re.compile(r'data-tralbum="(?P<DATA>[^"]+)"', re.MULTILINE)
 RE_FLOPPY = re.compile(r"floppy", re.IGNORECASE)
 RE_MINIDISC = re.compile(r"mini\s*disc", re.IGNORECASE)
 RE_VINYL = re.compile(r"\bvinyl\b", re.IGNORECASE)
@@ -23,7 +23,7 @@ RE_URL = re.compile(r"^https?://")
 
 async def scrape_label_merch_url(url: Url) -> Iterable[MerchItem]:
     logging.debug(f"Scraping label merch url {url}...")
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
         maybe_res = await request_with_retry(session, url=url)
         if not maybe_res:
             return []
@@ -106,6 +106,13 @@ def _parse_merch_item_html(html: str, url: Url) -> Iterable[MerchItem]:
         logging.error(f"failed to parse merch item html {url}")
         return []
 
+    data_tralbum_raw = maybe_match.group("DATA")
+    data_tralbum_raw = data_tralbum_raw.replace("&quot;", '"')
+    try:
+        releases = json.loads(data_tralbum_raw)["packages"] or []
+    except KeyError:
+        return []
+
     timestamp = datetime.now().isoformat()
     label = Selector(text=html).xpath('''
         //meta[
@@ -116,12 +123,6 @@ def _parse_merch_item_html(html: str, url: Url) -> Iterable[MerchItem]:
             @property="og:url"
         ]/@content''').get()
     results: list[MerchItem] = []
-    data_tralbum_raw = maybe_match.group("DATA")
-    data_tralbum_raw = data_tralbum_raw.replace("&quot;", '"')
-    try:
-        releases = json.loads(data_tralbum_raw)["packages"] or []
-    except KeyError:
-        releases = []
     for release in releases:
         if (release["quantity_available"] or 0) > 0:
             results.append(MerchItem(

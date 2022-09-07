@@ -1,0 +1,130 @@
+from functools import partial
+from typing import Any
+
+import pytest
+from aiohttp import web
+from aiohttp.test_utils import TestServer
+from pytest_unordered import unordered
+
+from scraper.filesystem_helper import resources_dir
+from scraper.model import MerchItem
+from scraper.scraper import scrape_label_merch_url
+
+tests_resources_dir = resources_dir / "tests"
+
+
+@pytest.fixture
+def label_merch_3_unique_merch_paths_html() -> str:
+    return open(tests_resources_dir / "label_merch_3_unique_merch_paths.html").read()
+
+
+@pytest.fixture
+def merch_item_25_available_cassette_and_vinyl_html() -> str:
+    return open(tests_resources_dir / "--25_merch_item_available_cassette_and_vinyl.html").read()
+
+
+@pytest.fixture
+def merch_item_26_available_cassette_and_soldout_vinyl_html() -> str:
+    return open(tests_resources_dir / "--26_merch_item_available_cassette_and_soldout_vinyl.html").read()
+
+
+@pytest.fixture
+def merch_item_blue_album_available_vinyl_and_soldout_cassette_html() -> str:
+    return open(tests_resources_dir / "blue-album_merch_item_available_vinyl_and_soldout_cassette.html").read()
+
+
+@pytest.fixture
+def merch_item_pink_album_available_vinyl_and_soldout_cassette_html() -> str:
+    return open(tests_resources_dir / "pink-album_merch_item_available_vinyl_and_soldout_cassette.html").read()
+
+
+@pytest.fixture
+async def mock_server(
+        aiohttp_server: Any,
+        label_merch_3_unique_merch_paths_html: str,
+        merch_item_25_available_cassette_and_vinyl_html: str,
+        merch_item_26_available_cassette_and_soldout_vinyl_html: str,
+        merch_item_blue_album_available_vinyl_and_soldout_cassette_html: str,
+        merch_item_pink_album_available_vinyl_and_soldout_cassette_html: str,
+) -> TestServer:
+    async def handler(_: web.Request, html: str) -> web.Response:
+        return web.Response(text=html)
+
+    app = web.Application()
+    app.add_routes([web.get(
+        "/test_label_merch_url",
+        partial(handler, html=label_merch_3_unique_merch_paths_html)),
+    ])
+    app.add_routes([web.get(
+        "/album/--25",
+        partial(handler, html=merch_item_25_available_cassette_and_vinyl_html)),
+    ])
+    app.add_routes([web.get(
+        "/album/--26",
+        partial(handler, html=merch_item_26_available_cassette_and_soldout_vinyl_html)),
+    ])
+    app.add_routes([web.get(
+        "/album/blue-album",
+        partial(handler, html=merch_item_blue_album_available_vinyl_and_soldout_cassette_html)),
+    ])
+    app.add_routes([web.get(
+        "/album/pink-album",
+        partial(handler, html=merch_item_pink_album_available_vinyl_and_soldout_cassette_html)),
+    ])
+
+    return await aiohttp_server(app)
+
+
+async def test_scrape_label_merch_url(mock_server: TestServer) -> None:
+    url = str(mock_server.make_url("/test_label_merch_url"))
+    actual_merch_items = list(await scrape_label_merch_url(url))
+    expected_merch_items = [
+        MerchItem(
+            artist='鬱',
+            currency='USD',
+            edition_of=333,
+            id=401367820,
+            image_id=29195372,
+            label='Geometric Lullaby',
+            merch_type='Vinyl',
+            price=30.0,
+            release_date='25 Jan 2022 19:48:11 GMT',
+            remaining=71,
+            timestamp='2022-09-07T10:38:06.062291',
+            title='・薔薇綺麗躊躇網羅就職痙攣蝋燭鷹麟爨齉馕龘爨齉龘・  (Pink Album)',
+            url='https://geometriclullaby.bandcamp.com/album/pink-album',
+        ),
+        MerchItem(
+            artist='t e l e p a t h テレパシー能力者',
+            currency='USD',
+            edition_of=None,
+            id=524554060,
+            image_id=26919027,
+            label='Geometric Lullaby',
+            merch_type='Vinyl',
+            price=44.44,
+            release_date='23 Nov 2021 08:52:26 GMT',
+            remaining=78,
+            timestamp='2022-09-07T10:38:06.111151',
+            title='アンタラ通信',
+            url='https://geometriclullaby.bandcamp.com/album/--25',
+        ),
+        MerchItem(
+            artist='鬱',
+            currency='USD',
+            edition_of=333,
+            id=965252114,
+            image_id=29195359,
+            label='Geometric Lullaby',
+            merch_type='Vinyl',
+            price=35.0,
+            release_date='25 Jan 2022 19:45:57 GMT',
+            remaining=88,
+            timestamp='2022-09-07T10:38:06.163348',
+            title='・過世的購物中心蕭條導瀉檔案完畢世界・  (Blue Album)',
+            url='https://geometriclullaby.bandcamp.com/album/blue-album',
+        ),
+    ]
+
+    assert len(actual_merch_items) == len(expected_merch_items)
+    assert actual_merch_items == unordered(expected_merch_items)

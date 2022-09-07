@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 from dataclasses_json import LetterCase, dataclass_json
-
 
 Url = str
 
@@ -11,14 +11,14 @@ Url = str
 class MerchItem:
     artist: str
     currency: str
-    edition_of: int
+    edition_of: Optional[int]
     id: int
     image_id: int
     label: str
     merch_type: str
     price: float
     release_date: str
-    remaining: int
-    timestamp: str
+    remaining: Optional[int]
+    timestamp: str = field(compare=False)
     title: str
     url: Url
