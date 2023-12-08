@@ -3,7 +3,7 @@ import json
 from scraper.model import MerchItem
 
 
-def test_should_convert_merch_details_to_json():
+def test_should_convert_merch_details_to_json() -> None:
     given_merch_item = MerchItem(
         artist="test_artist",
         currency="test_currency",
@@ -35,6 +35,6 @@ def test_should_convert_merch_details_to_json():
         "url": "test_url",
     })
 
-    actual_json = given_merch_item.to_json()
+    actual_json = given_merch_item.to_json()  # type: ignore[attr-defined]
 
     assert actual_json == expected_json

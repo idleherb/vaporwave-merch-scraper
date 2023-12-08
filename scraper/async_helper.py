@@ -2,7 +2,8 @@ import asyncio
 import http
 import logging
 import random
-from typing import Any, Coroutine, Generator, Iterable, Optional, Sequence
+from collections.abc import Coroutine, Generator, Iterable, Sequence
+from typing import Any
 
 from aiohttp import ClientSession
 
@@ -18,36 +19,42 @@ async def gather_scraping_results(
 ) -> Sequence[MerchItem]:
     nested_results = await asyncio.gather(*future_results, return_exceptions=True)
     results: list[MerchItem] = []
-    for result_or_exception, url in zip(nested_results, urls):
+    for result_or_exception, url in zip(nested_results, urls, strict=True):
         if isinstance(result_or_exception, BaseException):
-            logging.error(f"failed to scrape {url}", exc_info=result_or_exception)
+            logging.error("failed to scrape %s", url, exc_info=result_or_exception)
         else:
             results += result_or_exception
 
     return results
 
 
-async def request_with_retry(session: ClientSession, url: str, num_try: int = 0) -> Optional[tuple[str, Url]]:
+async def request_with_retry(session: ClientSession, url: str, num_try: int = 0) -> tuple[str, Url] | None:
     async with session.get(url) as res:
         if res.status == http.HTTPStatus.OK:
             return await res.text(encoding="utf-8"), str(res.url)
-        elif res.status == http.HTTPStatus.NOT_FOUND:
-            logging.error(f"failed to reach url {url} ({res.status})")
+
+        if res.status == http.HTTPStatus.NOT_FOUND:
+            logging.error("failed to reach url %s (%s)", url, res.status)
             return None
-        elif res.status == http.HTTPStatus.TOO_MANY_REQUESTS:
+
+        if res.status == http.HTTPStatus.TOO_MANY_REQUESTS:
             if num_try < MAX_REQUEST_RETRIES:
                 num_try += 1
                 lower_delay = REQUEST_DELAY_MS * 0.5
                 upper_delay = REQUEST_DELAY_MS * 1.5
                 actual_delay = 2 ** num_try * random.uniform(lower_delay, upper_delay)
                 logging.warning(
-                    f"failed to reach url {url}({res.status}), "
-                    f"pending retry {num_try} with {actual_delay:.2f}s delay..."
+                    "failed to reach url %s(%s), "
+                    "pending retry %s with %s delay...",
+                    url,
+                    res.status,
+                    num_try,
+                    actual_delay,
                 )
                 await asyncio.sleep(actual_delay)
                 return await request_with_retry(session=session, url=url, num_try=num_try)
         else:
-            logging.error(f"failed to reach url {url} ({res.status}), skipping...")
+            logging.error("failed to reach url %s (%s), skipping...", url, res.status)
             return None
 
     return None

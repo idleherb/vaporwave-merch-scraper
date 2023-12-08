@@ -13,7 +13,7 @@ Live app: http://merch.iwanttorelease.com
 
 ## Run Tests
 
-    flake8 .
+    ruff .
     mypy .
     pytest --cov=scraper
 

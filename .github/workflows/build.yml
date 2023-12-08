@@ -19,9 +19,9 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install
-    - name: Lint with flake8
+    - name: Lint with ruff
       run: |
-        poetry run flake8 .
+        poetry run ruff .
     - name: Type checking with mypy
       run: |
         poetry run mypy .
