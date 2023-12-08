@@ -7,7 +7,7 @@ from typing import Iterable, Optional
 
 import aiohttp
 from aiohttp import ClientSession
-from parsel import Selector  # type: ignore
+from parsel import Selector
 
 from scraper.async_helper import gather_scraping_results, request_with_retry
 from scraper.model import MerchItem, Url
@@ -58,10 +58,10 @@ def _parse_label_merch_html(html: str) -> set[str]:
                 ]
         ]/a[./div[@class="art"]]''').getall()
 
-    return set([_parse_anchor_html(anchor) for anchor in anchors])
+    return set(filter(None, [_parse_anchor_html(anchor) for anchor in anchors]))
 
 
-def _parse_anchor_html(html) -> str:
+def _parse_anchor_html(html) -> str | None:
     merch_item_path = Selector(text=html).xpath('''
         //a[./div[@class="art"]]/@href
     ''').get()
@@ -118,7 +118,7 @@ def _parse_merch_item_html(html: str, url: Url) -> Iterable[MerchItem]:
         //meta[
             @property="og:site_name"
         ]/@content''').get()
-    url = Selector(text=html).xpath('''
+    album_url = Selector(text=html).xpath('''
         //meta[
             @property="og:url"
         ]/@content''').get()
@@ -139,7 +139,7 @@ def _parse_merch_item_html(html: str, url: Url) -> Iterable[MerchItem]:
                 remaining=maybe_quantity_available,
                 timestamp=timestamp,
                 title=html_lib.unescape(release["album_title"] or release["title"] or ""),
-                url=html_lib.unescape(url),
+                url=html_lib.unescape(album_url or ""),
             ))
 
     return results

@@ -19,7 +19,7 @@ async def gather_scraping_results(
     nested_results = await asyncio.gather(*future_results, return_exceptions=True)
     results: list[MerchItem] = []
     for result_or_exception, url in zip(nested_results, urls):
-        if isinstance(result_or_exception, Exception):
+        if isinstance(result_or_exception, BaseException):
             logging.error(f"failed to scrape {url}", exc_info=result_or_exception)
         else:
             results += result_or_exception
