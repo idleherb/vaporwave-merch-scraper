@@ -4,7 +4,7 @@ Live app: http://merch.iwanttorelease.com
 
 ## Prerequesites
 
-[Python 3.10](https://www.python.org/downloads/) and [Poetry](https://python-poetry.org/docs/#installation) installed.
+[Python 3.12](https://www.python.org/downloads/) and [Poetry](https://python-poetry.org/docs/#installation) installed.
 
 ## Setup
 

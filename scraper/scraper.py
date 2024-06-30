@@ -3,7 +3,7 @@ import json
 import logging
 import re
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import aiohttp
 from aiohttp import ClientSession
@@ -110,7 +110,7 @@ def _parse_merch_item_html(html: str, url: Url) -> Iterable[MerchItem]:
     except KeyError:
         return []
 
-    timestamp = datetime.now(tz=timezone.utc).isoformat()
+    timestamp = datetime.now(tz=UTC).isoformat()
     label = Selector(text=html).xpath("""
         //meta[
             @property="og:site_name"
