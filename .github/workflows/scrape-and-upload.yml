@@ -2,8 +2,8 @@ name: scrape-and-upload
 
 on:
   schedule:
-    # Run workflow every hour
-    - cron: "0 * * * *"
+    # Run workflow every 4 hours
+    - cron: "0 */4 * * *"
 
 jobs:
   scrape:

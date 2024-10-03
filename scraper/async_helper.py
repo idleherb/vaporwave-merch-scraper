@@ -10,7 +10,7 @@ from aiohttp import ClientSession
 from scraper.model import MerchItem, Url
 
 MAX_REQUEST_RETRIES = 12
-REQUEST_DELAY_MS = 0.5  # 500ms
+REQUEST_DELAY_MS = 2000  # 2 seconds
 
 
 async def gather_scraping_results(
