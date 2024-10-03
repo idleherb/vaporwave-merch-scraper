@@ -1,5 +1,5 @@
+from collections.abc import Awaitable, Callable
 from functools import partial
-from typing import Any
 
 import pytest
 from aiohttp import web
@@ -45,7 +45,7 @@ def merch_item_pink_album_available_vinyl_and_soldout_cassette_html() -> str:
 
 @pytest.fixture()
 async def mock_server(  # noqa: PLR0913
-        aiohttp_server: Any,  # noqa: ANN401
+        aiohttp_server: Callable[..., Awaitable[TestServer]],
         label_merch_3_unique_merch_paths_html: str,
         merch_item_25_available_cassette_and_vinyl_html: str,
         merch_item_26_available_cassette_and_soldout_vinyl_html: str,
