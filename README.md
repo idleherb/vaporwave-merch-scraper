@@ -13,9 +13,7 @@ Live app: http://merch.iwanttorelease.com
 
 ## Run Tests
 
-    ruff .
-    mypy .
-    pytest --cov=scraper
+    ruff check . && mypy . && pytest --cov=scraper
 
 ## Run Scraper
 

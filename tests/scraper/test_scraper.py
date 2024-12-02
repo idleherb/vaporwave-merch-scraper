@@ -13,37 +13,37 @@ from scraper.scraper import scrape_label_merch_url
 tests_resources_dir = resources_dir / "tests"
 
 
-@pytest.fixture()
+@pytest.fixture
 def label_merch_3_unique_merch_paths_html() -> str:
     with (tests_resources_dir / "label_merch_3_unique_merch_paths.html").open() as f:
         return f.read()
 
 
-@pytest.fixture()
+@pytest.fixture
 def merch_item_25_available_cassette_and_vinyl_html() -> str:
     with (tests_resources_dir / "--25_merch_item_available_cassette_and_vinyl.html").open() as f:
         return f.read()
 
 
-@pytest.fixture()
+@pytest.fixture
 def merch_item_26_available_cassette_and_soldout_vinyl_html() -> str:
     with (tests_resources_dir / "--26_merch_item_available_cassette_and_soldout_vinyl.html").open() as f:
         return f.read()
 
 
-@pytest.fixture()
+@pytest.fixture
 def merch_item_blue_album_available_vinyl_and_soldout_cassette_html() -> str:
     with (tests_resources_dir / "blue-album_merch_item_available_vinyl_and_soldout_cassette.html").open() as f:
         return f.read()
 
 
-@pytest.fixture()
+@pytest.fixture
 def merch_item_pink_album_available_vinyl_and_soldout_cassette_html() -> str:
     with (tests_resources_dir / "pink-album_merch_item_available_vinyl_and_soldout_cassette.html").open() as f:
         return f.read()
 
 
-@pytest.fixture()
+@pytest.fixture
 async def mock_server(  # noqa: PLR0913
         aiohttp_server: Callable[..., Awaitable[TestServer]],
         label_merch_3_unique_merch_paths_html: str,

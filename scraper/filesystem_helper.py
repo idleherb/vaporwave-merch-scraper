@@ -4,7 +4,7 @@ _MAX_DEPTH = 5
 
 
 def _get_project_root_dir() -> Path:
-    current_dir = Path().resolve()
+    current_dir = Path().cwd()
     for _ in range(_MAX_DEPTH):
         if (current_dir / "pyproject.toml").exists():
             return current_dir
