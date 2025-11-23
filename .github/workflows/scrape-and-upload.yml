@@ -4,6 +4,7 @@ on:
   schedule:
     # Run workflow every 4 hours
     - cron: "0 */4 * * *"
+  workflow_dispatch:
 
 jobs:
   scrape:
@@ -33,6 +34,8 @@ jobs:
   upload-results:
     needs: scrape
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
     - name: Create folder for syncing
@@ -51,3 +54,11 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         SOURCE_DIR: "tmp"
+    - name: Update last-run timestamp
+      run: |
+        date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/last-run.txt
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .github/last-run.txt
+        git commit -m "Update last-run timestamp"
+        git push
