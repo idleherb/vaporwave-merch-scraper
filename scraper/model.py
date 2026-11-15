@@ -1,13 +1,14 @@
 from dataclasses import dataclass, field
 
-from dataclasses_json import LetterCase, dataclass_json
+from dataclasses_json import DataClassJsonMixin, LetterCase, config
 
 Url = str
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
-class MerchItem:
+class MerchItem(DataClassJsonMixin):
+    dataclass_json_config = config(letter_case=LetterCase.CAMEL)["dataclasses_json"]
+
     artist: str
     currency: str
     edition_of: int | None

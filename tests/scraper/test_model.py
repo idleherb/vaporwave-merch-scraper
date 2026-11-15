@@ -35,6 +35,6 @@ def test_should_convert_merch_details_to_json() -> None:
         "url": "test_url",
     })
 
-    actual_json = given_merch_item.to_json()  # type: ignore[attr-defined]
+    actual_json = given_merch_item.to_json()
 
     assert actual_json == expected_json

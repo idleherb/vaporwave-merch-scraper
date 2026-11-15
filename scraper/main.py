@@ -24,7 +24,7 @@ async def main() -> None:
     future_results = (scrape_label_merch_url(url) for url in urls)
     results = await gather_scraping_results(future_results, urls)
 
-    print(json.dumps([json.loads(res.to_json()) for res in results]))  # type: ignore[attr-defined]
+    print(json.dumps([json.loads(res.to_json()) for res in results]))
 
     logging.debug("... finished, found %s merch items.", len(results))
 
