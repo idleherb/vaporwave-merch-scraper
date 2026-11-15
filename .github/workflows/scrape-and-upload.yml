@@ -9,8 +9,8 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    # Throttled scraping takes well under an hour; fail fast instead of GitHub's 6h default
-    timeout-minutes: 120
+    # Serial, rate-limit-aware scraping takes about an hour; fail well before GitHub's 6h limit
+    timeout-minutes: 240
     steps:
     - uses: actions/checkout@v4
     - name: Set up Poetry

@@ -16,7 +16,14 @@ tests_resources_dir = resources_dir / "tests"
 
 @pytest.fixture(autouse=True)
 def no_pause_between_requests(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(async_helper, "PAUSE_AFTER_REQUEST_S", 0)
+    monkeypatch.setattr(async_helper, "_throttle", lambda: _unpaced_throttle)
+    monkeypatch.setattr(async_helper, "INITIAL_COOLDOWN_S", 0)
+    _unpaced_throttle.pause_s = 0
+    _unpaced_throttle.cooldown_until = 0
+    _unpaced_throttle.consecutive_rate_limits = 0
+
+
+_unpaced_throttle = async_helper._Throttle()  # noqa: SLF001
 
 
 @pytest.fixture
@@ -195,3 +202,26 @@ async def test_bot_challenge_page_yields_no_items(aiohttp_server: Callable[..., 
 
 async def test_unreachable_url_yields_no_items() -> None:
     assert list(await scrape_label_merch_url("http://127.0.0.1:1/merch")) == []
+
+
+async def test_rate_limited_request_is_retried(
+        aiohttp_server: Callable[..., Awaitable[TestServer]],
+        merch_item_25_available_cassette_and_vinyl_html: str,
+) -> None:
+    calls = 0
+
+    async def handler(_: web.Request) -> web.Response:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return web.Response(status=429)
+        return web.Response(text=merch_item_25_available_cassette_and_vinyl_html)
+
+    app = web.Application()
+    app.add_routes([web.get("/album/--25", handler)])
+    server = await aiohttp_server(app)
+
+    merch_items = list(await scrape_label_merch_url(str(server.make_url("/album/--25"))))
+
+    assert calls >= 2  # noqa: PLR2004
+    assert {item.id for item in merch_items} == {2963618744, 524554060}
