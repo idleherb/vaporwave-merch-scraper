@@ -2,13 +2,15 @@ name: scrape-and-upload
 
 on:
   schedule:
-    # Run workflow every 4 hours
-    - cron: "0 */4 * * *"
+    # Run workflow once a day; more frequent bursts get Bandcamp's bot challenge
+    - cron: "17 5 * * *"
   workflow_dispatch:
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    # Serial, rate-limit-aware scraping takes about an hour; fail well before GitHub's 6h limit
+    timeout-minutes: 240
     steps:
     - uses: actions/checkout@v4
     - name: Set up Poetry
@@ -33,6 +35,7 @@ jobs:
 
   upload-results:
     needs: scrape
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write

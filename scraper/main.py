@@ -23,6 +23,10 @@ async def main() -> None:
     urls = list(_read_label_urls())
     future_results = (scrape_label_merch_url(url) for url in urls)
     results = await gather_scraping_results(future_results, urls)
+    if not results:
+        # Never replace the published data with an empty list, e.g. when Bandcamp serves bot challenges.
+        logging.error("found no merch items at all, aborting without output")
+        raise SystemExit(1)
 
     print(json.dumps([json.loads(res.to_json()) for res in results]))
 
@@ -35,7 +39,7 @@ def _read_label_urls() -> Iterable[Url]:
             clean_line = line.strip()
             if not clean_line or line.startswith("#"):
                 continue
-            yield line
+            yield clean_line
 
 
 if __name__ == "__main__":
