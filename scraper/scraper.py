@@ -5,8 +5,6 @@ import re
 from collections.abc import Iterable
 from datetime import UTC, datetime
 
-import aiohttp
-from aiohttp import ClientSession
 from parsel import Selector
 
 from scraper.async_helper import gather_scraping_results, request_with_retry
@@ -23,26 +21,26 @@ RE_URL = re.compile(r"^https?://")
 
 async def scrape_label_merch_url(url: Url) -> Iterable[MerchItem]:
     logging.debug("Scraping label merch url %s...", url)
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
-        maybe_res = await request_with_retry(session, url=url)
-        if not maybe_res:
-            return []
-        html, response_url = maybe_res
-        base_url = response_url[:response_url.rfind("/")]
-        merch_item_paths = _parse_label_merch_html(html)
-        if merch_item_paths:
-            return await _scrape_merch_item_paths(paths=merch_item_paths, base_url=base_url, session=session)
+    maybe_res = await request_with_retry(url)
+    if not maybe_res:
+        return []
+    html, response_url = maybe_res
+    base_url = response_url[:response_url.rfind("/")]
+    merch_item_paths = _parse_label_merch_html(html)
+    if merch_item_paths:
+        return await _scrape_merch_item_paths(paths=merch_item_paths, base_url=base_url)
 
-        logging.warning(
-            "failed to find merch item entries in label merch html %s, "
-            "attempting to scrape as merch item...",
-            response_url,
-        )
-        try:
-            return await _scrape_merch_item_url(url=response_url, session=session)
-        except BaseException:
-            logging.exception("failed to scrape url %s", response_url)
-            return []
+    logging.warning(
+        "failed to find merch item entries in label merch html %s (%s), "
+        "attempting to scrape as merch item...",
+        response_url,
+        _describe_html(html),
+    )
+    try:
+        return await _scrape_merch_item_url(url=response_url)
+    except BaseException:
+        logging.exception("failed to scrape url %s", response_url)
+        return []
 
 
 def _parse_label_merch_html(html: str) -> set[str]:
@@ -62,6 +60,15 @@ def _parse_label_merch_html(html: str) -> set[str]:
     return set(filter(None, [_parse_anchor_html(anchor) for anchor in anchors]))
 
 
+def _describe_html(html: str, max_text_length: int = 300) -> str:
+    """Summarize an unexpected response so the logs show what was actually served."""
+    selector = Selector(text=html)
+    title = " ".join((selector.xpath("//title/text()").get() or "").split())
+    text_nodes = selector.xpath("//body//text()[not(ancestor::script or ancestor::style)]").getall()
+    text = " ".join(" ".join(text_nodes).split())
+    return f"length={len(html)}, title={title!r}, text={text[:max_text_length]!r}"
+
+
 def _parse_anchor_html(html: str) -> str | None:
     return Selector(text=html).xpath("""
         //a[./div[@class="art"]]/@href
@@ -71,7 +78,6 @@ def _parse_anchor_html(html: str) -> str | None:
 async def _scrape_merch_item_paths(
         paths: Iterable[str],
         base_url: Url,
-        session: ClientSession,
 ) -> Iterable[MerchItem]:
     def album_url(path: str) -> str:
         if RE_URL.match(path):
@@ -81,13 +87,13 @@ async def _scrape_merch_item_paths(
         return base_url + path
 
     urls = [album_url(path) for path in paths]
-    future_results = (_scrape_merch_item_url(url, session=session) for url in urls)
+    future_results = (_scrape_merch_item_url(url) for url in urls)
     return await gather_scraping_results(future_results, urls)
 
 
-async def _scrape_merch_item_url(url: Url, session: ClientSession) -> Iterable[MerchItem]:
+async def _scrape_merch_item_url(url: Url) -> Iterable[MerchItem]:
     logging.debug("Scraping merch item url %s...", url)
-    maybe_res = await request_with_retry(session, url=url)
+    maybe_res = await request_with_retry(url)
     if not maybe_res:
         return []
     html, _ = maybe_res

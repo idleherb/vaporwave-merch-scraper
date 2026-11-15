@@ -6,11 +6,17 @@ from aiohttp import web
 from aiohttp.test_utils import TestServer
 from pytest_unordered import unordered
 
+from scraper import async_helper
 from scraper.filesystem_helper import resources_dir
 from scraper.model import MerchItem
-from scraper.scraper import scrape_label_merch_url
+from scraper.scraper import _describe_html, scrape_label_merch_url
 
 tests_resources_dir = resources_dir / "tests"
+
+
+@pytest.fixture(autouse=True)
+def no_pause_between_requests(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(async_helper, "PAUSE_AFTER_REQUEST_S", 0)
 
 
 @pytest.fixture
@@ -163,3 +169,29 @@ async def test_scrape_label_merch_url(mock_server: TestServer) -> None:
         ]
 
     assert actual_merch_items == unordered(expected_merch_items)
+
+
+def test_describe_html_summarizes_title_and_visible_text() -> None:
+    html = (
+        "<html><head><title> Just a\n moment </title><script>x()</script></head>"
+        "<body><h1>Checking  your browser</h1><style>p{}</style><p>Please wait</p></body></html>"
+    )
+
+    assert _describe_html(html) == (
+        f"length={len(html)}, title='Just a moment', text='Checking your browser Please wait'"
+    )
+
+
+async def test_bot_challenge_page_yields_no_items(aiohttp_server: Callable[..., Awaitable[TestServer]]) -> None:
+    async def handler(_: web.Request) -> web.Response:
+        return web.Response(text="<html><head><title>Client Challenge</title></head><body></body></html>")
+
+    app = web.Application()
+    app.add_routes([web.get("/merch", handler)])
+    server = await aiohttp_server(app)
+
+    assert list(await scrape_label_merch_url(str(server.make_url("/merch")))) == []
+
+
+async def test_unreachable_url_yields_no_items() -> None:
+    assert list(await scrape_label_merch_url("http://127.0.0.1:1/merch")) == []
